@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base target="_top">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f6f9; color: #333; }
+    header {
+      background: linear-gradient(90deg, #007bff, #00c6ff);
+      padding: 30px 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    header h1 { margin: 0; font-size: 2.2em; }
+    header p { margin: 5px 0 0; font-size: 1.1em; }
+
+    .container {
+      display: grid;
+      gap: 25px;
+      padding: 30px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    .column {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
+    .column:hover { transform: translateY(-4px); }
+    .column h2 {
+      text-align: center; font-size: 1.5em; margin-bottom: 15px;
+      color: #004085; border-bottom: 2px solid #ddd; padding-bottom: 8px;
+    }
+
+    .chapter { margin-bottom: 20px; }
+    .chapter h3 {
+      font-size: 1.2em; margin-bottom: 10px; padding: 8px 12px;
+      border-radius: 8px; color: white;
+    }
+    .col-A h3 { background: #28a745; }
+    .col-B h3 { background: #fd7e14; }
+    .col-C h3 { background: #9c27b0; }
+    .col-D h3 { background: #007bff; }
+
+    .quiz-card {
+      background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px;
+      padding: 12px; margin: 8px 0; text-align: center; transition: all 0.2s;
+    }
+    .quiz-card a {
+      text-decoration: none; font-weight: bold; color: inherit; display: block;
+    }
+    .quiz-card:hover {
+      background: #e9ecef; transform: translateY(-3px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="site-title"></h1>
+    <p id="site-author"></p>
+  </header>
+
+  <div class="container" id="class-container"></div>
+
+  <script>
+    // ===== SITE INFO =====
+    const SITE_INFO = {
+      title: "NGUYỄN NHẬT HUY",
+      author: "0914282232"
+    };
+
+    // ===== CẤU HÌNH LỚP =====
+    
+    const CLASS_LIST = [
+      { key: "A", title: "Lớp 10", showTitle: true },
+      { key: "B", title: "Lớp 11", showTitle: true },
+      { key: "C", title: "Lớp 12", showTitle: true }, 
+      // { key: "D", title: "Lớp 9", showTitle: true } 
+    ];
+    // Bảng màu cho từng lớp (khối)
+    const CLASS_CHAPTER_COLORS = {
+      A: ["#28a745", "#fd7e14", "#9c27b0", "#007bff", "#e83e8c", "#17a2b8"],
+      B: ["#fd7e14", "#28a745", "#9c27b0", "#007bff", "#e83e8c", "#17a2b8"],
+      C: ["#9c27b0","#28a745", "#fd7e14",  "#007bff", "#e83e8c", "#17a2b8"],
+      D: ["#28a745", "#fd7e14", "#9c27b0", "#007bff", "#e83e8c", "#17a2b8"],
+    };
+    // ===== DỮ LIỆU QUIZ =====
+     const QUIZ_PAGES = [
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 01", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_01" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 02", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_02" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 03", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_03" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 04", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_04" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 05", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_05" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 06", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_06" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 07", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_07" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 13", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_13" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 11", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_11" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 12", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_12" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 14", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_14" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 15", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_15" },
+      { lop: "A", chapter: "Giữa kì 1", title: "Đề 16", file: "https://sites.google.com/view/nguyen-nhat-huy/k10/gk1_16" },
+
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 01", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_01" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 02", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_02" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 03", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_03" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 04", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_04" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 05", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_05" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 06", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_06" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 07", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_07" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 13", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_13" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 11", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_11" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 12", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_12" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 14", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_14" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 15", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_15" },
+      { lop: "B", chapter: "Giữa kì 1", title: "Đề 16", file: "https://sites.google.com/view/nguyen-nhat-huy/k11/gk1_16" },
+
+
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 01", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_01" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 02", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_02" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 03", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_03" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 04", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_04" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 05", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_05" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 06", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_06" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 07", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_07" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 13", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_13" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 11", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_11" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 12", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_12" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 14", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_14" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 15", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_15" },
+      { lop: "C", chapter: "Giữa kì 1", title: "Đề 16", file: "https://sites.google.com/view/nguyen-nhat-huy/k12/gk1_16" },
+
+    ];
+
+
+    //Dưới này đừng sửa
+    // ===== BASE URL (nếu dùng internal page param) =====
+    const baseUrl = "";
+    //Nếu Exect:
+    //const baseUrl = "<?= baseUrl ?>";
+	
+
+    // ===== HIỆN HEADER =====
+    document.getElementById("site-title").textContent = SITE_INFO.title;
+    document.getElementById("site-author").textContent = SITE_INFO.author;
+
+    // ===== TẠO CỘT THEO CLASS_LIST =====
+    // ===== TẠO CỘT THEO CLASS_LIST =====
+    function createColumns() {
+      const container = document.getElementById("class-container");
+      container.style.gridTemplateColumns = `repeat(${CLASS_LIST.length}, 1fr)`;
+
+      CLASS_LIST.forEach(cls => {
+        const col = document.createElement("div");
+        col.className = "column col-" + cls.key;
+        col.innerHTML = `
+          ${cls.showTitle ? `<h2>${cls.title}</h2>` : ""}
+          <div id="lop${cls.key}"></div>
+        `;
+        container.appendChild(col);
+      });
+    }
+
+    // ===== RENDER CÁC LỚP =====
+    //Exect tab mới: <a href="${baseUrl}?page=${item.file}" target="_blank">${item.title}</a>
+	//Hoặc Exect cùng tab: <a href="${baseUrl}?page=${item.file}" target="_self">${item.title}</a>
+function renderLop(key) {
+  const container = document.getElementById("lop" + key);
+  if (!container) return;
+
+  const chapters = {};
+  QUIZ_PAGES.filter(p => p.lop === key).forEach(p => {
+    if (!chapters[p.chapter]) chapters[p.chapter] = [];
+    chapters[p.chapter].push(p);
+  });
+
+  const colors = CLASS_CHAPTER_COLORS[key] || CHAPTER_COLORS; // fallback nếu chưa khai báo
+
+  let html = "";
+  let idx = 0;
+  for (const chapter in chapters) {
+    const color = colors[idx % colors.length];
+    html += `<div class="chapter"><h3 style="background:${color}">${chapter}</h3>`;
+    chapters[chapter].forEach(item => {
+      html += `
+        <div class="quiz-card">
+          <a href="${item.file.startsWith('http') ? item.file : baseUrl + '?page=' + item.file}" target="_blank">${item.title}</a>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    idx++;
+  }
+
+  container.innerHTML = html;
+}
+
+
+    // ===== KHỞI TẠO =====
+    createColumns();
+    CLASS_LIST.forEach(cls => renderLop(cls.key));
+  </script>
+</body>
+</html>

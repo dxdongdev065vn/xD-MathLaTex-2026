@@ -1,0 +1,15 @@
+# MixEasy Dependencies
+pywin32>=306
+python-docx>=1.1.0
+openpyxl>=3.1.2
+lxml>=5.1.0
+qrcode>=7.4.2
+Pillow>=10.2.0
+wmi>=1.5.1
+requests>=2.31.0
+mammoth>=1.6.0
+officemath2latex>=0.1.0
+latex2mathml>=3.77.0
+mathml2omml>=0.1.0
+spire-doc>=12.1.0
+winsound

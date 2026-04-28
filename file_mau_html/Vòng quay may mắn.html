@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vòng quay may mắn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Roboto:wght@800&display=swap" rel="stylesheet">
+  <style>
+    :root { --wheel-size: 500px; }
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(180deg, #ffe6b3, #ffd699);
+      margin: 0;
+      padding: 0 12px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #333;
+    }
+    h1 { margin: 28px 0 12px; font-size: 40px; color: #e53935; }
+    .arrow {
+      margin: 14px auto -10px;
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 30px solid #e53935;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
+      z-index: 10;
+    }
+    #wheel-container {
+      position: relative;
+      width: min(80vmin, var(--wheel-size));
+      height: min(80vmin, var(--wheel-size));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+    #wheel {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      background: transparent;
+      transition: transform 0.1s ease-out;
+    }
+    .button-group {
+      display: flex; gap: 16px; margin-top: 18px;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .button-group button {
+      padding: 12px 28px; font-size: 18px;
+      border: 0; border-radius: 10px; color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,.15);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .button-group button:hover { transform: translateY(-2px); }
+    #spinBtn { background: #ff7043; }
+    #spinBtn:hover { background: #ff5f2e; }
+    #editBtn { background: #42a5f5; }
+    #editBtn:hover { background: #2196f3; }
+    #resetListBtn { background: #e53935; }
+    #resetListBtn:hover { background: #b71c1c; }
+    #result {
+      font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+      margin-top: 26px; font-size: 32px; font-weight: 800; color: #c62828;
+      background: #fff3cd; display: inline-block; padding: 10px 16px;
+      border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,.15);
+      min-width: 280px; word-break: break-word;
+    }
+    .brand {
+      position: fixed;       /* luôn cố định */
+      top: 20px;          /* cách mép dưới bottom: 20px */
+      left: 20px;            /* cách mép trái */
+      font-size: 28px;       /* chữ to hơn tí */
+      color: rgba(0, 0, 0, 0.15);  /* chữ đen mờ trong suốt */
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-weight: bold;
+      transform: rotate(-15deg);   /* nghiêng chữ */
+      pointer-events: none;  /* không bị click */
+      user-select: none;     /* không copy chọn được */
+      }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000; opacity: 0; visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-content {
+      background: #fff; padding: 24px; border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      width: 90%; max-width: 500px; transform: translateY(-20px);
+      transition: transform 0.3s ease; position: relative;
+    }
+    .modal-overlay.active .modal-content { transform: translateY(0); }
+    .modal-content h2 { margin:0 0 16px; font-size: 24px; color: #333; }
+    .modal-content textarea {
+      width: calc(100% - 20px); height: 200px;
+      margin-bottom: 20px; padding: 10px;
+      border: 1px solid #ccc; border-radius: 8px;
+      font-size: 16px; resize: vertical;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .modal-actions {
+      display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap;
+    }
+    .modal-actions button {
+      padding: 10px 20px; font-size: 16px; border: none;
+      border-radius: 8px; cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.2s ease;
+    }
+    #saveListBtn { background: #66bb6a; color: white; }
+    #saveListBtn:hover { background: #4caf50; }
+    #cancelListBtn { background: #e0e0e0; color: #333; }
+    #cancelListBtn:hover { background: #bdbdbd; }
+    @media (max-width: 600px) {
+      h1 { font-size: 32px; }
+      #result { font-size: 24px; min-width: unset; width: 90%; }
+      .button-group { flex-direction: row; gap: 10px; width: 90%; }
+      .button-group button { flex: 1; min-width: 120px; }
+      .modal-content { padding: 16px; }
+      .modal-content h2 { font-size: 20px; }
+      .modal-content textarea { height: 150px; font-size: 14px; }
+      .modal-actions { flex-direction: row; gap: 8px; justify-content: center; }
+      .modal-actions button { flex: 1; min-width: 100px; }
+    }
+  </style>
+</head>
+<body>
+  <!--
+  <div class="brand">
+      Nguyễn Nhật Huy<br>0914282232
+  </div>
+  -->
+  <h1>🎡Vòng quay may mắn🎡</h1>
+  <div class="arrow"></div>
+  <div id="wheel-container"><canvas id="wheel" width="500" height="500"></canvas></div>
+  <div class="button-group">
+    <button id="spinBtn">Quay!</button>
+    <button id="removeBtn" style="background-color: #f44336; ">Loại tên đã quay</button>
+    <button id="editBtn">Sửa danh sách</button>
+    <button id="resetListBtn">Reset danh sách</button>
+  </div>
+  <div id="result">👉 Kết quả sẽ hiện ở đây</div>
+  <div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Sửa danh sách, mỗi ô ứng với 1 dòng</h2>
+      <textarea id="nameListTextarea" placeholder="Nhập mỗi tên trên một dòng"></textarea>
+      <div class="modal-actions">
+        <button id="cancelListBtn">Hủy</button>
+        <button id="saveListBtn">Lưu danh sách</button>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+// Key for localStorage
+const LOCAL_STORAGE_KEY = "Wheel_V_ng_quay_may_m_n";
+const defaultNames = ["Nguyễn", "Nhật", "Huy", "Quốc", "Học", "Huế"];
+// Biến lưu danh sách tên hiện tại
+let names = loadNamesFromLocalStorage();
+//V6: hàm chọn âm thanh
+function createAudio(name) {
+  const extensions = ["mp3","wav","ogg"]; // ưu tiên theo thứ tự
+  for (let ext of extensions) {
+    const audio = new Audio(`${name}.${ext}`);
+    // Kiểm tra trình duyệt có chơi được không
+    if (audio.canPlayType(`audio/${ext}`).replace(/no/,'')) {
+      return audio;
+    }
+  }
+  console.warn(`Không tìm thấy file âm thanh hợp lệ cho "${name}"`);
+  return new Audio(); // audio rỗng
+}
+// Tham chiếu đến các phần tử DOM
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const spinBtn = document.getElementById("spinBtn");
+const editBtn = document.getElementById("editBtn");
+const resetListBtn = document.getElementById("resetListBtn");
+const removeBtn = document.getElementById("removeBtn"); // Nút loại bỏ tên
+const nameListTextarea = document.getElementById("nameListTextarea");
+const saveListBtn = document.getElementById("saveListBtn");
+const cancelListBtn = document.getElementById("cancelListBtn");
+const editModal = document.getElementById("editModal");
+const resultDisplay = document.getElementById("result");
+//V6:
+const audioStart = new Audio("start.mp3");   // (1) Khi bấm nút quay
+
+const audioStop = new Audio("stop.mp3");     // (4) Khi dừng
+
+audioStart.preload = 'auto'; // Thiết lập tải trước
+
+audioStop.preload = 'auto'; // Thiết lập tải trước
+
+//
+// Các biến cho vòng quay
+let W = canvas.width, H = canvas.height, R = W/2;
+let N, ARC, angle=0, spinning=false;
+const baseColors = ["#ffcc33","#ff9933","#66bb6a","#42a5f5","#ab47bc","#ef5350"];
+let colors=[];
+let winnerName = ""; // Biến để lưu tên người thắng cuộc
+
+function updateWheelParameters() {
+  N = names.length;
+  if (N === 0) { // Handle empty names list gracefully
+    ARC = 0;
+    colors = [];
+  } else {
+    ARC = 2 * Math.PI / N;
+    colors = [];
+    for (let i = 0; i < N; i++) {
+      colors.push(baseColors[i % baseColors.length]);
+    }
+
+    if (N % 6 === 1) {
+      colors[colors.length - 1] = baseColors[3];
+    }
+  }
+}
+
+// Vẽ vòng quay
+function drawWheel(){
+  ctx.clearRect(0,0,W,H);
+  if(N===0)return; // Không vẽ gì nếu danh sách rỗng
+  for(let i=0;i<N;i++){
+    const start = angle + i * ARC;
+    const end = start + ARC;
+    ctx.beginPath();
+    ctx.moveTo(R, R);
+    ctx.fillStyle = colors[i];
+    ctx.arc(R, R, R, start, end);
+    ctx.closePath();
+    ctx.fill();
+    ctx.save();
+    ctx.translate(R, R);
+    ctx.rotate(start + ARC / 2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#212121";
+    ctx.font = "16px Arial";
+    ctx.fillText(names[i], R - 12, 6);
+    ctx.restore();
+  }
+}
+// Hàm làm mượt chuyển động quay
+function easeOutCubic(t){return 1-Math.pow(1-t,3);}
+// Bắt đầu quay
+function spin() {
+  if (spinning) return; // Ngăn chặn quay khi đang quay
+  if (N === 0) {
+    resultDisplay.textContent = "Danh sách rỗng! Không thể quay.";
+    return;
+  }
+  
+  spinning = true;
+  //V6
+  // Phát âm thanh khi bấm quay (1)
+audioStart.currentTime = 0;
+audioStart.play();
+
+
+
+//End V6
+  resultDisplay.textContent = "Đang quay...";
+  //removeBtn.style.display = "none"; // Ẩn nút loại bỏ khi bắt đầu quay
+  winnerName = ""; // Reset tên người thắng cũ
+
+  const startAngle = angle;
+  const extraTurns = 10 //+ Math.random() * 2; // Số vòng quay thêm
+  const delta = extraTurns * 2 * Math.PI + Math.random() * 2 * Math.PI; // Góc quay tổng cộng
+  const D = 6200; // Thời gian quay (ms)
+  const t0 = performance.now(); // Thời gian bắt đầu
+
+  function frame(t){
+    const p=Math.min((t-t0)/D,1);
+    angle=startAngle+delta*easeOutCubic(p);
+    drawWheel();
+    if(p<1)requestAnimationFrame(frame);
+    else{spinning=false; announceWinner();}
+  }
+  requestAnimationFrame(frame);
+}
+// Công bố người thắng cuộc
+//V6
+function announceWinner() {
+  // Dừng âm thanh start (nếu nó vẫn đang chạy)
+  audioStart.pause();
+  audioStart.currentTime = 0; // Tua về đầu để lần sau phát lại
+
+  // Phát âm thanh stop sau một chút để vòng quay cảm giác mượt
+  setTimeout(() => {
+    audioStop.currentTime = 0;
+    audioStop.play();
+  }, 200); // 200ms cũng ok, chỉnh theo cảm giác
+
+  // Tính index người thắng
+  let theta = (-Math.PI / 2 - angle) % (2 * Math.PI);
+  if (theta < 0) theta += 2 * Math.PI;
+  const idx = Math.floor(theta / ARC) % N;
+  winnerName = names[idx];
+
+  // Hiển thị tên người thắng sau khi stop đang phát
+  resultDisplay.textContent = `🎉 ${winnerName} 🎉`;
+}
+
+//End V6
+// Hiển thị modal chỉnh sửa danh sách
+function showEditModal() {
+  nameListTextarea.value = names.join("\n");
+  editModal.classList.add("active");
+}
+// Ẩn modal chỉnh sửa danh sách
+function hideEditModal() {
+  editModal.classList.remove("active");
+}
+// Lưu danh sách tên vào Local Storage
+function saveNamesToLocalStorage(n) {
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(n));
+}
+
+// Tải danh sách tên từ Local Storage hoặc dùng mặc định
+function loadNamesFromLocalStorage() {
+  try {
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.error("Lỗi khi tải danh sách từ Local Storage:", e);
+  }
+  return defaultNames.slice(); // Trả về bản sao của danh sách mặc định
+}
+
+// Lưu danh sách tên đã chỉnh sửa
+function saveNameList() {
+  const newNames = nameListTextarea.value.split("\n")
+                                   .map(n => n.trim())
+                                   .filter(n => n !== "");
+
+  if (newNames.length === 0) {
+    resultDisplay.textContent = "Danh sách không được để trống!";
+    return;
+  }
+  
+  names = newNames;
+  saveNamesToLocalStorage(names);
+  updateWheelParameters();
+  drawWheel();
+  resultDisplay.textContent = "Danh sách đã được cập nhật!";
+  hideEditModal();
+}
+
+// Reset danh sách về mặc định
+function resetNameList() {
+  localStorage.removeItem(LOCAL_STORAGE_KEY);
+  names = defaultNames.slice(); // Dùng bản sao của danh sách mặc định
+  updateWheelParameters();
+  drawWheel();
+  resultDisplay.textContent = "Danh sách đã reset về mặc định!";
+  hideEditModal();
+  //removeBtn.style.display = "none"; // Ẩn nút loại bỏ khi reset
+}
+// Loại bỏ tên người thắng cuộc khỏi danh sách
+function removeWinner() {
+  if (winnerName === "") return; // Không có ai thắng để loại bỏ
+
+  const winnerIndex = names.indexOf(winnerName);
+  if (winnerIndex > -1) {
+    names.splice(winnerIndex, 1); // Xóa tên khỏi mảng
+    saveNamesToLocalStorage(names); // Lưu danh sách mới vào Local Storage
+    updateWheelParameters(); // Cập nhật lại thông số vòng quay
+    drawWheel(); // Vẽ lại vòng quay
+    resultDisplay.textContent = `Đã loại bỏ "${winnerName}" khỏi danh sách!`;
+    winnerName = ""; // Reset tên người thắng
+    //removeBtn.style.display = "none"; // Ẩn nút "Loại tên đã quay"
+  } else {
+    resultDisplay.textContent = "Không tìm thấy tên để loại bỏ.";
+  }
+}
+// Gắn các sự kiện cho nút
+spinBtn.addEventListener("click", spin);
+editBtn.addEventListener("click", showEditModal);
+resetListBtn.addEventListener("click", resetNameList);
+removeBtn.addEventListener("click", removeWinner); // Gắn sự kiện cho nút mới
+saveListBtn.addEventListener("click", saveNameList);
+cancelListBtn.addEventListener("click", hideEditModal);
+//document.getElementById("spinBtn").addEventListener("click",spin);
+// Xử lý khi cửa sổ được thay đổi kích thước
+window.addEventListener('resize', () => {
+  updateWheelParameters();
+  drawWheel();
+});
+window.addEventListener('resize',()=>{updateWheelParameters(); drawWheel();});
+window.onload=()=>{updateWheelParameters(); drawWheel(); document.getElementById("result").textContent="Sẵn sàng!";};
+// Khởi tạo khi trang tải xong
+window.onload = () => {
+  updateWheelParameters();
+  drawWheel();
+  resultDisplay.textContent = "Sẵn sàng!";
+  //removeBtn.style.display = "none"; // Đảm bảo nút loại bỏ bị ẩn khi khởi tạo
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
++ Công thức toán dùng Equation hoặc latex (Mathtype thì có chức năng Toggle Tex để chuyển, hoặc dùng nút trong phần mềm chuẩn hơn)
++ Muốn chạy toán Offline thì phải để thư mục MathJax-3.2.2 cùng với file html kiểm tra)
++ Khi chọn lưu dữ liệu, nếu không xóa (bằng nút) hoặc xuất kết quả sẽ tự xóa, thì dữ liệu còn lưu,
+sẽ ảnh hưởng đến lần thử khác
++ Phiên bản mới, khóa chuột phải nên khi xuất bạn sẽ thấy file ..._code.txt để lấy code làm online
